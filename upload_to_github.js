@@ -7,8 +7,8 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 
-const OWNER = 'sidhukhushsidhu0-lab';
-const REPO = 'Final-website';
+const OWNER = 'bosessidhu-commits';
+const REPO = 'Website00';
 const PROJECT_DIR = __dirname;
 const IGNORE = [
   'node_modules',
