@@ -9,6 +9,9 @@ import { imagetools } from "vite-imagetools";
 
 export default defineConfig({
   vite: {
+    server: {
+      strictPort: false,
+    },
     plugins: [imagetools()],
   },
   tanstackStart: {

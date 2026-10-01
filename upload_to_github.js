@@ -8,7 +8,7 @@ const path = require('path');
 const https = require('https');
 
 const OWNER = 'sidhukhushsidhu0-lab';
-const REPO = 'Ai-Website-Design';
+const REPO = 'Final-website';
 const PROJECT_DIR = __dirname;
 const IGNORE = [
   'node_modules',
