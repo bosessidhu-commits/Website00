@@ -3572,7 +3572,16 @@ function Footer({
 
         {/* Bottom Copyright & Punjab Pride Bar */}
         <div className="mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-emerald-900/80 pt-6 text-[11px] text-emerald-200/60">
-          <div>
+          <div
+            onClick={(e) => {
+              // Secret invisible management trigger: Triple-click copyright text to open portal
+              if (e.detail === 3) {
+                onOpenAdmin();
+              }
+            }}
+            className="select-none"
+            title="Danial's Cafe & Bistro"
+          >
             © {new Date().getFullYear()} Danial's Cafe &amp; Bistro. All rights reserved.
             <span className="hidden sm:inline mx-2">•</span>
             <span className="block sm:inline mt-1 sm:mt-0">
@@ -3603,16 +3612,6 @@ function Footer({
               className="hover:text-white transition-colors"
             >
               Refund Policy
-            </button>
-            <span>•</span>
-            <button
-              type="button"
-              onClick={onOpenAdmin}
-              className="inline-flex items-center gap-1.5 rounded-full bg-white/10 hover:bg-[#00a884] text-white px-3 py-1 font-bold transition-all border border-emerald-400/30 active:scale-95"
-              title="Staff & Admin Portal (Management Login)"
-            >
-              <Shield className="h-3 w-3 text-[#5cdbb5]" />
-              <span>Staff &amp; Admin Portal</span>
             </button>
             <span>•</span>
             <span className="text-emerald-300 font-medium">
@@ -5472,15 +5471,6 @@ function WebsiteOfflineScreen({
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onOpenAdmin}
-            className="btn-spring inline-flex items-center gap-2 rounded-full border border-stone-300 bg-white px-4 py-2 text-xs font-bold text-[#083e35] hover:bg-stone-50 active:scale-95 shadow-xs transition-all cursor-pointer"
-            title="Open Management Portal"
-          >
-            <Shield className="h-3.5 w-3.5 text-[#00a884]" />
-            <span>Staff Login</span>
-          </button>
         </div>
       </header>
 
@@ -5627,19 +5617,49 @@ function HomePage() {
   const [siteStatus, setSiteStatusState] = useState<SiteStatusConfig>(() => getSiteStatus());
   const [bypassMaintenance, setBypassMaintenance] = useState(false);
 
-  // Track Pageview and check for #admin in URL
+  // Check for private special links (?portal, ?admin, #portal, #admin) and track pageviews
   useEffect(() => {
     recordPageView();
 
-    const handleHash = () => {
-      if (window.location.hash === "#admin") {
-        setIsAdminModalOpen(true);
+    const checkSpecialLink = () => {
+      try {
+        const search = window.location.search.toLowerCase();
+        const hash = window.location.hash.toLowerCase();
+        const pathname = window.location.pathname.toLowerCase();
+
+        // Special secret links: ?portal, ?portal=true, ?admin, ?admin=true, #portal, #admin
+        if (
+          search.includes("portal") ||
+          search.includes("admin") ||
+          hash === "#portal" ||
+          hash === "#admin" ||
+          pathname.endsWith("/portal")
+        ) {
+          setIsAdminModalOpen(true);
+        }
+      } catch (err) {
+        // Safe fallback
       }
     };
 
-    handleHash();
-    window.addEventListener("hashchange", handleHash);
-    return () => window.removeEventListener("hashchange", handleHash);
+    checkSpecialLink();
+    window.addEventListener("hashchange", checkSpecialLink);
+    window.addEventListener("popstate", checkSpecialLink);
+
+    // Discreet management keyboard shortcut: Ctrl + Shift + A (or Cmd + Shift + A)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "A" || e.key === "a")) {
+        e.preventDefault();
+        setIsAdminModalOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("hashchange", checkSpecialLink);
+      window.removeEventListener("popstate", checkSpecialLink);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, []);
 
   // Sync site status via custom event
@@ -5833,19 +5853,7 @@ function HomePage() {
         onOpenEmailModal={handleOpenEmailModal}
       />
 
-      {/* Floating Discreet Staff & Admin Portal Quick Access Button */}
-      <button
-        type="button"
-        onClick={() => setIsAdminModalOpen(true)}
-        className="fixed bottom-6 left-5 z-40 flex items-center gap-2 rounded-full bg-[#083e35]/95 hover:bg-[#062c25] text-white px-3.5 py-2 text-xs font-bold shadow-2xl border border-emerald-400/35 backdrop-blur-md transition-all hover:scale-105 active:scale-95 group cursor-pointer"
-        title="Open Staff & Admin Portal (Management Login)"
-      >
-        <div className="relative flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/20 text-[#5cdbb5] group-hover:bg-[#00a884] group-hover:text-white transition-colors">
-          <Shield className="h-3 w-3" />
-          <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-        </div>
-        <span className="hidden sm:inline">Admin Portal</span>
-      </button>
+      {/* Staff & Admin Portal is hidden from public view; accessible via special link (?portal=true, #portal, /admin) */}
 
       {/* Floating Scroll-To-Top Button with Smooth Navigation */}
       {showScrollTop && (
